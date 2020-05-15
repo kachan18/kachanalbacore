@@ -90,14 +90,14 @@ async def on_reaction_add(reaction, user):
                 if reaction.message.embeds[0].title == "러시안룰렛 대기중":
                     for i in range(2,100): #100명 이후는 에러나니까 더많으면 숫자 높이기.
                         if rr["A"+str(i)].value == str(user.id):
-                            rr["A"+str(i)].value = "-"
-                            rr["B"+str(i)].value = "-"
+                            rr["A"+str(i)] = "-"
+                            rr["B"+str(i)] = "-"
                             for j in range(i,100):
                                 if rr["A"+str(j)].value == "-":
-                                    rr["A" + str(j)].value = rr["A" + str(j+1)].value
-                                    rr["B" + str(j)].value = rr["B" + str(j+1)].value
-                                    rr["A" + str(j+1)].value = "-"
-                                    rr["B" + str(j+1)].value = "-"
+                                    rr["A" + str(j)] = rr["A" + str(j+1)].value
+                                    rr["B" + str(j)] = rr["B" + str(j+1)].value
+                                    rr["A" + str(j+1)] = "-"
+                                    rr["B" + str(j+1)] = "-"
                             file.save("러시안룰렛.xlsx")
                             break
                         if rr["A"+str(i)].value == "-":
@@ -111,7 +111,8 @@ async def on_reaction_add(reaction, user):
                         if rr["A" + str(i)].value == "-":
                             break
                         rrj.append(rr["B" + str(i)].value)
-                    rrj = ", ".join(rrj)
+                    if rrj:
+                        rrj = ", ".join(rrj)
                     embedrr = discord.Embed(title="러시안룰렛 대기중",
                                             description="지휘관, 왔어? 좋아, 러시안룰렛을 할거다 이거지? 규칙정도는 알고 있지?",
                                             color=0xf15f5f)
@@ -119,7 +120,7 @@ async def on_reaction_add(reaction, user):
                     embedrr.add_field(name="```참가 신청```", value="🔫을 누르면 신청이 가능해. 다시 눌러 취소도 할 수 있고.", inline=False)
                     embedrr.add_field(name="```게임 시작```", value="인원 참가가 완료되고 ▶️을 누르면 시작할 수 있어. 적어도 두명은 있어야 된다구?", inline=False)
                     if rrj:
-                        embedrr.add_field(name="```참가자```", value="%s" % rrj,inline=False)
+                        embedrr.add_field(name="```참가자```", value="%s" % rrj, inline=False)
                     embedrr.set_thumbnail(
                         url="https://images2.imgbox.com/8d/01/GdvzdwSj_o.png")
                     await reaction.message.edit(embed=embedrr)
@@ -140,7 +141,8 @@ async def on_reaction_add(reaction, user):
                                 if rr["A" + str(i)].value == "-":
                                     break
                                 rrj.append(rr["B" + str(i)].value)
-                            rrj = ", ".join(rrj)
+                            if rrj:
+                                rrj = ", ".join(rrj)
                             if rrj:
                                 embedrr.add_field(name="```생존자```", value="%s" % rrj, inline=False)
                             embedrr.set_thumbnail(
@@ -188,7 +190,8 @@ async def on_reaction_add(reaction, user):
                                     if rr["A" + str(i)].value == "-":
                                         break
                                     rrj.append(rr["B" + str(i)].value)
-                                rrj = ", ".join(rrj)
+                                if rrj:
+                                    rrj = ", ".join(rrj)
                                 if rrj:
                                     embedrr.add_field(name="```생존자```", value="%s" % rrj, inline=False)
                                 embedrr.set_thumbnail(
@@ -201,12 +204,13 @@ async def on_reaction_add(reaction, user):
                         embedrr = discord.Embed(title="러시안룰렛 진행중",
                                                 description="과연 누가 이길까나~ 히히~♪",
                                                 color=0xf15f5f)
-                        embedrr.add_field(name="```다음 차례```", value="%s" % rr["C2"].value, inline=False)
+                        embedrr.add_field(name="```다음 차례```", value="%s" % rr["B"+str(rr["C2"].value)].value, inline=False)
                         for i in range(2, 100):
                             if rr["A" + str(i)].value == "-":
                                 break
                             rrj.append(rr["B" + str(i)].value)
-                        rrj = ", ".join(rrj)
+                        if rrj:
+                            rrj = ", ".join(rrj)
                         if rrj:
                             embedrr.add_field(name="```생존자```", value="%s" % rrj, inline=False)
                         embedrr.add_field(name="```오류```", value="[ %s ] 지휘관 차례가 아니잖아! 순서 정도는 지켜달라구!" % user.name, inline=False)
@@ -228,7 +232,8 @@ async def on_reaction_add(reaction, user):
                             if rr["A" + str(i)].value == "-":
                                 break
                             rrj.append(rr["B" + str(i)].value)
-                        rrj = ", ".join(rrj)
+                        if rrj:
+                            rrj = ", ".join(rrj)
                         if rrj:
                             embedrr.add_field(name="```참가자```", value="%s" % rrj, inline=False)
                         embedrr.set_thumbnail(
@@ -247,7 +252,8 @@ async def on_reaction_add(reaction, user):
                             if rr["A" + str(i)].value == "-":
                                 break
                             rrj.append(rr["B" + str(i)].value)
-                        rrj = ", ".join(rrj)
+                        if rrj:
+                            rrj = ", ".join(rrj)
                         if rrj:
                             embedrr.add_field(name="```생존자```", value="%s" % rrj, inline=False)
                         rr["C2"] = rrp
