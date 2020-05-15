@@ -1,1 +1,1 @@
-worker: python Akagibot.py
+worker: python Albacorebot.py
