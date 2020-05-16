@@ -186,7 +186,7 @@ async def on_reaction_add(reaction, user):
                                         break
                                     if str(ud["A" + str(i)].value) == "-":
                                         ud["A" + str(i)] = rr["A2"].value
-                                        ud["E" + str(i)] = ud["E" + str(i)].value + 50
+                                        ud["E" + str(i)] = 1050
                                         break
                                 rr["A2"] = "-"
                                 rr["B2"] = "-"
@@ -334,6 +334,8 @@ async def on_message(message):
                 embedhelp.add_field(name="!알바코어", value="오늘도 신나게 장난...이 아니지, 열심히 일할게~!", inline=False)
                 embedhelp.add_field(name="!알바코어 통아저씨", value="저기... 왜 나를 통안에 넣은거야...? 나가도 돼?", inline=False)
                 embedhelp.add_field(name="!알바코어 러시안룰렛", value="지휘관, 러시안룰렛 해볼래?", inline=False)
+                embedhelp.add_field(name="!알바코어 출석체크", value="출석체크!", inline=False)
+                embedhelp.add_field(name="!알바코어 크레딧", value="지휘관, 크레딧에 대해 궁금하다고?", inline=False)
                 await channel.send(embed=embedhelp)
 
             elif cmdline[1] == "통아저씨":
@@ -382,8 +384,9 @@ async def on_message(message):
                             else:
                                 sheet["C" + str(i)] = 1
                             sheet["D" + str(i)] = sheet["D" + str(i)].value + 1
+                            sheet["E" + str(i)] = sheet["E" + str(i)].value + 100
                             file.save("Udata.xlsx")
-                            embed = discord.Embed(title="출석체크", description="지휘관, 오늘도 신나게 장난...이 아니지, 열심히 일하자구~!",
+                            embed = discord.Embed(title="출석체크", description="지휘관, 오늘도 신나게 장난...이 아니지, 열심히 보내보자구~!\n출석체크 보상으로 100 크레딧도 줄게.",
                                                       color=0xf15f5f)
                             embed.set_thumbnail(
                                 url="https://images2.imgbox.com/8d/01/GdvzdwSj_o.png")
@@ -401,8 +404,9 @@ async def on_message(message):
                         sheet["B" + str(i)] = cooldown.strftime("%Y%m%d")
                         sheet["C" + str(i)] = 1
                         sheet["D" + str(i)] = 1
+                        sheet["E" + str(i)] = 1100
                         file.save("Udata.xlsx")
-                        embed = discord.Embed(title="출석체크", description="지휘관, 오늘도 신나게 장난...이 아니지, 열심히 보내보자구~!",
+                        embed = discord.Embed(title="출석체크", description="지휘관, 오늘도 신나게 장난...이 아니지, 열심히 보내보자구~!\n출석체크 보상으로 100 크레딧도 줄게.",
                                               color=0xf15f5f)
                         embed.set_thumbnail(
                             url="https://images2.imgbox.com/8d/01/GdvzdwSj_o.png")
@@ -439,6 +443,31 @@ async def on_message(message):
                                 embed.add_field(name="```보유량```", value="%s 크레딧" % sheet["E" + str(i)].value, inline=False)
                                 break
                         await channel.send(embed=embed)
+                    elif cmdline[2] == "디버그용추가":
+                        file = openpyxl.load_workbook("Udata.xlsx")
+                        sheet = file.active
+                        for i in range(2, 51):
+                            if str(message.author.id) == sheet["A" + str(i)].value:
+                                break
+                        if sheet["F" + str(i)].value == "관리자":
+                            if len(cmdline) == 4:
+                                embed = discord.Embed(title="크레딧", description="디버그용 추가 기능 -로 제거도 가능",
+                                                      color=0xf15f5f)
+                                embed.set_thumbnail(
+                                    url="https://images2.imgbox.com/8d/01/GdvzdwSj_o.png")
+                                embed.add_field(name="```보유자```", value="[ %s ] 지휘관" % message.author.mention, inline=False)
+                                for i in range(2, 51):
+                                    if str(message.author.id) == sheet["A" + str(i)].value:
+                                        embed.add_field(name="```이전 보유량```", value="%s 크레딧" % sheet["E" + str(i)].value, inline=False)
+                                        break
+                                sheet["E" + str(i)] = sheet["E" + str(i)].value + int(cmdline[3])
+                                file.save("Udata.xlsx")
+                                embed.add_field(name="```현재 보유량```", value="%s 크레딧" % sheet["E" + str(i)].value, inline=False)
+                                await channel.send(embed=embed)
+                            else:
+                                await channel.send("지휘관, 필요한 정보 중 일부가 빠졌는데?")
+                        else:
+                            await channel.send("지휘관, 필요한 권한이 없는데?")
                     else:
                         await channel.send("그런 기능 들어본적 없는데?")
             else:
