@@ -1,6 +1,7 @@
 import discord
 import asyncio
 import random
+import datetime
 import openpyxl
 import os
 
@@ -16,6 +17,7 @@ async def on_ready():
     print("ready")
     game = discord.Game("장난을 준비")
     await client.change_presence(status=discord.Status.online, activity=game)
+
 
 @client.event
 async def on_reaction_add(reaction, user):
@@ -79,7 +81,7 @@ async def on_reaction_add(reaction, user):
         file = openpyxl.load_workbook("러시안룰렛.xlsx")
         rr = file.active
         rrn = 0
-        for i in range(2,100):
+        for i in range(2, 100):
             if rr["A"+str(i)].value == "-":
                 rrn = i - 2
                 break
@@ -88,11 +90,11 @@ async def on_reaction_add(reaction, user):
         if str(reaction.emoji) == '🔫':
             if len(reaction.message.embeds) >= 1:
                 if reaction.message.embeds[0].title == "러시안룰렛 대기중":
-                    for i in range(2,100): #100명 이후는 에러나니까 더많으면 숫자 높이기.
+                    for i in range(2, 100): #100명 이후는 에러나니까 더많으면 숫자 높이기.
                         if rr["A"+str(i)].value == str(user.id):
                             rr["A"+str(i)] = "-"
                             rr["B"+str(i)] = "-"
-                            for j in range(i,100):
+                            for j in range(i, 100):
                                 if rr["A"+str(j)].value == "-":
                                     rr["A" + str(j)] = rr["A" + str(j+1)].value
                                     rr["B" + str(j)] = rr["B" + str(j+1)].value
@@ -107,7 +109,7 @@ async def on_reaction_add(reaction, user):
                             break
                     file = openpyxl.load_workbook("러시안룰렛.xlsx")
                     rr = file.active
-                    for i in range(2,100):
+                    for i in range(2, 100):
                         if rr["A" + str(i)].value == "-":
                             break
                         rrj.append(rr["B" + str(i)].value)
@@ -176,9 +178,20 @@ async def on_reaction_add(reaction, user):
                                 embedrr.add_field(name="```우승자```", value="%s" % rr["B2"].value, inline=False)
                                 embedrr.set_thumbnail(
                                     url="https://images2.imgbox.com/8d/01/GdvzdwSj_o.png")
+                                udata = openpyxl.load_workbook("Udata.xlsx")
+                                ud = udata.active
+                                for i in range(2, 50):
+                                    if str(ud["A"+str(i)].value) == rr["A2"]:
+                                        ud["E"+str(i)] = ud["E"+str(i)].value + 50
+                                        break
+                                    if str(ud["A" + str(i)].value) == "-":
+                                        ud["A" + str(i)] = rr["A2"].value
+                                        ud["E" + str(i)] = ud["E" + str(i)].value + 50
+                                        break
                                 rr["A2"] = "-"
                                 rr["B2"] = "-"
                                 file.save("러시안룰렛.xlsx")
+                                udata.save("Udata.xlsx")
                                 await reaction.message.edit(embed=embedrr)
                                 await reaction.message.clear_reactions()
                             else:
@@ -348,16 +361,90 @@ async def on_message(message):
                 else:
                     await channel.send("이 기능은 #러시안룰렛 채널에서만 사용이 가능하다구")
 
-            elif (cmdline[1] == "정보"):
-                embed = discord.Embed(title="알바코어봇 v0.1",
-                                      description="게임을 위한 봇",
+            elif cmdline[1] == "정보":
+                embed = discord.Embed(title="알바코어봇 v0.2",
+                                      description="게임과 장난을 위한 봇\n제작자 : Admiral. 레이나",
                                       color=0xf15f5f)
                 embed.set_image(
                     url="https://images2.imgbox.com/8d/01/GdvzdwSj_o.png")
                 await channel.send(embed=embed)
 
+            elif cmdline[1] == "출석체크":
+                file = openpyxl.load_workbook("Udata.xlsx")
+                sheet = file.active
+                for i in range(2, 51):
+                    if str(message.author.id) == sheet["A" + str(i)].value:
+                        if int(sheet["B" + str(i)].value) < int(datetime.datetime.now().strftime("%Y%m%d")):
+                            cooldown = datetime.datetime.now()
+                            sheet["B" + str(i)].value = cooldown.strftime("%Y%m%d")
+                            if sheet["B" + str(i)].value == int(datetime.datetime.now().strftime("%Y%m%d")) - 1:
+                                sheet["C" + str(i)] = sheet["C" + str(i)].value + 1
+                            else:
+                                sheet["C" + str(i)] = 1
+                            sheet["D" + str(i)] = sheet["D" + str(i)].value + 1
+                            file.save("Udata.xlsx")
+                            embed = discord.Embed(title="출석체크", description="지휘관, 오늘도 신나게 장난...이 아니지, 열심히 일하자구~!",
+                                                      color=0xf15f5f)
+                            embed.set_thumbnail(
+                                url="https://images2.imgbox.com/8d/01/GdvzdwSj_o.png")
+                            embed.add_field(name="```출석자```", value="[ %s ] 지휘관" % message.author.mention, inline=False)
+                            embed.add_field(name="```출석일자```", value="%s" % cooldown.strftime("%Y / %m / %d"), inline=False)
+                            embed.add_field(name="```연속 출석일수```", value="%d 일" % sheet["D" + str(i)].value, inline=False)
+                            embed.add_field(name="```총 출석일수```", value="%d 일" % sheet["D" + str(i)].value, inline=False)
+                            await channel.send(embed=embed)
+                        else:
+                            await channel.send("```[%s] 지휘관, 오늘은 벌써 출석체크를 했다구```" % message.author)
+                            break
+                    if sheet["A" + str(i)].value == "-":
+                        sheet["A" + str(i)] = str(message.author.id)
+                        cooldown = datetime.datetime.now()
+                        sheet["B" + str(i)] = cooldown.strftime("%Y%m%d")
+                        sheet["C" + str(i)] = 1
+                        sheet["D" + str(i)] = 1
+                        file.save("Udata.xlsx")
+                        embed = discord.Embed(title="출석체크", description="지휘관, 오늘도 신나게 장난...이 아니지, 열심히 보내보자구~!",
+                                              color=0xf15f5f)
+                        embed.set_thumbnail(
+                            url="https://images2.imgbox.com/8d/01/GdvzdwSj_o.png")
+                        embed.add_field(name="```출석자```", value="[ %s ] 지휘관" % message.author.mention, inline=False)
+                        embed.add_field(name="```출석일자```", value="%s" % cooldown.strftime("%Y / %m / %d"), inline=False)
+                        embed.add_field(name="```연속 출석일수```", value="%d 일" % sheet["D" + str(i)].value, inline=False)
+                        embed.add_field(name="```총 출석일수```", value="%d 일" % sheet["D" + str(i)].value, inline=False)
+                        await channel.send(embed=embed)
+                        break
+
+            elif cmdline[1] == "크레딧":
+                if len(cmdline) == 2:
+                    embed = discord.Embed(title="크레딧", description="지휘관, 크레딧에 대해 궁금하다고?",
+                                          color=0xf15f5f)
+                    embed.set_thumbnail(
+                        url="https://images2.imgbox.com/8d/01/GdvzdwSj_o.png")
+                    embed.add_field(name="```크레딧 확인```", value="지휘관이 얼마나 가지고 있는지 알 수 있어.", inline=False)
+                    await channel.send(embed=embed)
+                else:
+                    if cmdline[2] == "확인":
+                        file = openpyxl.load_workbook("Udata.xlsx")
+                        sheet = file.active
+                        embed = discord.Embed(title="크레딧", description="지휘관, 아이스크림 사주면, 누군가의 '남들에게 걸려선 안 되는 일'은 잊어버릴지도~",
+                                              color=0xf15f5f)
+                        embed.set_thumbnail(
+                            url="https://images2.imgbox.com/8d/01/GdvzdwSj_o.png")
+                        embed.add_field(name="```보유자```", value="[ %s ] 지휘관" % message.author.mention, inline=False)
+                        for i in range(2, 51):
+                            if str(message.author.id) == sheet["A" + str(i)].value:
+                                embed.add_field(name="```보유량```", value="%s 크레딧" % sheet["E" + str(i)].value, inline=False)
+                                break
+                            if sheet["A" + str(i)].value == "-":
+                                sheet["A" + str(i)] = str(message.author.id)
+                                embed.add_field(name="```보유량```", value="%s 크레딧" % sheet["E" + str(i)].value, inline=False)
+                                break
+                        await channel.send(embed=embed)
+                    else:
+                        await channel.send("그런 기능 들어본적 없는데?")
             else:
-                await channel.send("무엇을 말하시려 했는지 모르겠습니다")
+                await channel.send("뭘 원하는거야 지휘관?")
+    if message.content.startswith("!알바코난"):
+        await channel.send("누가 알바코난이야! 알바코어라고!")
 
 access_token = os.environ["BOT_TOKEN"]
 client.run(access_token)
